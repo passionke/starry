@@ -1,6 +1,7 @@
 package org.apache.spark.sql.execution
 
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.catalyst.optimizer.StarryLocalRelationReplace
 
 /**
   * Created by passionke on 2018/6/27.
@@ -14,8 +15,15 @@ object LocalBasedStrategies {
       StarryAggStrategy(),
       StarryJoinLocalStrategy(sparkSession.sessionState.conf),
       StarryUnionLocalStrategy(),
-      StarryLimitLocalStrategy()
+      StarryLimitLocalStrategy(),
+      StarryLocalTableScanStrategies()
     ) ++: sparkSession.experimental.extraStrategies
+
+    sparkSession.sessionState.optimizer.batches
+
+    sparkSession.experimental.extraOptimizations = Seq(
+      StarryLocalRelationReplace
+    )
   }
 
   def unRegister(sparkSession: SparkSession): Unit = {
@@ -25,6 +33,9 @@ object LocalBasedStrategies {
         .filter(strategy => !strategy.isInstanceOf[StarryUnionLocalStrategy])
         .filter(strategy => !strategy.isInstanceOf[StarryLimitLocalStrategy])
         .filter(strategy => !strategy.isInstanceOf[StarryAggStrategy])
+        .filter(strategy => !strategy.isInstanceOf[StarryLocalTableScanStrategies])
+
+    sparkSession.experimental.extraOptimizations = Seq()
   }
 
 }

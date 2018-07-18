@@ -29,4 +29,9 @@ object SparkPlanExecutor {
     rdd.compute(partition, new StarryTaskContext).toList
   }
 
+  def rddCompute(rdd: RDD[InternalRow]): List[InternalRow] = {
+    val partition = firstPartition(rdd)
+    rdd.compute(partition, new StarryTaskContext).toList
+  }
+
 }

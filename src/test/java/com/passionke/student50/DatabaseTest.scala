@@ -40,6 +40,9 @@ class DatabaseTest extends FunSuite {
     val schema = rst.schema
     val list = SparkPlanExecutor.doExec(rst.queryExecution.sparkPlan)
 
+    val rootPlans = rst.queryExecution.sparkPlan.find(plan => {
+      plan.children.isEmpty
+    })
     list.map(_.toSeq(schema)).foreach(itr => println(itr.toString))
 
     ProfileUtils.profileMuti(() => {
@@ -48,7 +51,39 @@ class DatabaseTest extends FunSuite {
       val end = System.currentTimeMillis()
       end - start
     }, 1000000, 1)
+  }
 
+  test("prob 01_rdd") {
+    val rst = sparkSession.sql(
+      """
+        |select *
+        |from (
+        | select sId, score
+        | from score
+        | where cId = '01'
+        |) t1
+        |join (
+        | select sId, score
+        | from score
+        | where cId = '02'
+        |) t2
+        |on t1.sId = t2.sId
+        |where t1.score > t2.score
+      """.stripMargin)
+
+    rst.show()
+
+    val schema = rst.schema
+    val list = SparkPlanExecutor.doExec(rst.queryExecution.sparkPlan)
+    val rdd = rst.queryExecution.sparkPlan.execute().map(_.copy())
+    list.map(_.toSeq(schema)).foreach(itr => println(itr.toString))
+
+    ProfileUtils.profileMuti(() => {
+      val start = System.currentTimeMillis()
+      SparkPlanExecutor.rddCompute(rdd)
+      val end = System.currentTimeMillis()
+      end - start
+    }, 10000, 1)
   }
 
 }

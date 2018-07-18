@@ -1,6 +1,6 @@
 package org.apache.spark
 
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{SparkSession, SparkSessionExtensions}
 import org.apache.spark.sql.execution.LocalBasedStrategies
 
 /**
@@ -9,6 +9,8 @@ import org.apache.spark.sql.execution.LocalBasedStrategies
   * 一朝鹏程，快意风云，挥手功名
   */
 object Spark {
+  type ExtensionsBuilder = SparkSessionExtensions => Unit
+
   val sparkConf = new SparkConf()
   sparkConf.setMaster("local[*]")
   sparkConf.setAppName("aloha")
@@ -18,6 +20,7 @@ object Spark {
     .set("spark.broadcast.manager", "rotary")
     .set("rotary.shuffer", "true")
     .set("spark.sql.codegen.wholeStage", "false")
+    .set("spark.sql.extensions", "org.apache.spark.sql.StarrySparkSessionExtension")
   val sparkContext = new StarrySparkContext(sparkConf)
   val sparkSession: SparkSession =
     SparkSession.builder
