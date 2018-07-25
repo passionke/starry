@@ -1,8 +1,11 @@
 package com.passionke.student50
 
 import com.wacai.stanlee.ProfileUtils
-import org.apache.spark.SparkPlanExecutor
+import org.apache.spark.rdd.{RDD, StarryRDD}
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.catalyst.InternalRow
+import org.apache.spark.sql.catalyst.encoders.RowEncoder
+import org.apache.spark.{Dependency, SparkPlanExecutor}
 import org.scalatest.FunSuite
 
 /**
@@ -87,4 +90,96 @@ class DatabaseTest extends FunSuite {
     }, 10000, 1)
   }
 
+  test("prob 01_rdd change data") {
+    val rst = sparkSession.sql(
+      """
+        |select *
+        |from (
+        | select sId, score
+        | from score
+        | where cId = '01'
+        |) t1
+        |join (
+        | select sId, score
+        | from score
+        | where cId = '02'
+        |) t2
+        |on t1.sId = t2.sId
+        |where t1.score > t2.score
+      """.stripMargin)
+
+    rst.show()
+
+    val schema = rst.schema
+    val list = SparkPlanExecutor.doExec(rst.queryExecution.sparkPlan)
+    val rdd = rst.queryExecution.sparkPlan.execute().map(_.copy())
+    list.map(_.toSeq(schema)).foreach(itr => println(itr.toString))
+
+    val rootRdd = getRootRdd(rdd)
+
+    val d1 = sparkSession.createDataFrame(Score.scores().filterNot(s => s.sId.equals("02") && s.score.equals(70L)))
+
+    val d2 = d1.collect().map(row => RowEncoder.apply(d1.schema).toRow(row))
+    val rootStarryRdd = rootRdd.head.asInstanceOf[StarryRDD[InternalRow]]
+    rootStarryRdd.updateData(d2)
+    rdd.dependencies.flatMap(r => r.rdd.dependencies)
+    val start = System.currentTimeMillis()
+    val l2 = SparkPlanExecutor.rddCompute(rdd)
+    println("after rdd update")
+    assert(l2.lengthCompare(1) == 0)
+    l2.map(_.toSeq(schema)).foreach(itr => println(itr.toString()))
+    val end = System.currentTimeMillis()
+    end - start
+  }
+
+  test("prob 01_rdd change data perf") {
+    val rst = sparkSession.sql(
+      """
+        |select *
+        |from (
+        | select sId, score
+        | from score
+        | where cId = '01'
+        |) t1
+        |join (
+        | select sId, score
+        | from score
+        | where cId = '02'
+        |) t2
+        |on t1.sId = t2.sId
+        |where t1.score > t2.score
+      """.stripMargin)
+
+    rst.show()
+
+    val schema = rst.schema
+    val list = SparkPlanExecutor.doExec(rst.queryExecution.sparkPlan)
+    val rdd = rst.queryExecution.sparkPlan.execute().map(_.copy())
+    list.map(_.toSeq(schema)).foreach(itr => println(itr.toString))
+
+    val rootRdd = getRootRdd(rdd)
+
+    val d1 = sparkSession.createDataFrame(Score.scores().filterNot(s => s.sId.equals("02") && s.score.equals(70L)))
+
+    val d2 = d1.collect().map(row => RowEncoder.apply(d1.schema).toRow(row))
+    val rootStarryRdd = rootRdd.head.asInstanceOf[StarryRDD[InternalRow]]
+    ProfileUtils.profileMuti(() => {
+      val start = System.currentTimeMillis()
+      rootStarryRdd.updateData(d2)
+      SparkPlanExecutor.rddCompute(rdd)
+      val end = System.currentTimeMillis()
+      end - start
+    }, 10000, 1)
+    val l2 = SparkPlanExecutor.rddCompute(rdd)
+    assert(l2.lengthCompare(1) == 0)
+    l2.map(_.toSeq(schema)).foreach(itr => println(itr.toString()))
+  }
+
+  def getRootRdd(rdd: RDD[InternalRow]): Seq[RDD[InternalRow]] = {
+    if (rdd.dependencies.isEmpty) {
+      Seq(rdd)
+    } else {
+      rdd.dependencies.flatMap(dep => getRootRdd(dep.asInstanceOf[Dependency[InternalRow]].rdd))
+    }
+  }
 }

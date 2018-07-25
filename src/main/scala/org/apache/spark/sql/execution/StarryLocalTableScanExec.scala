@@ -27,7 +27,7 @@ case class StarryLocalTableScanExec(
     }
   }
 
-  private lazy val rdd = new StarryRDD(sparkContext, unsafeRows)
+  private lazy val rdd = new StarryRDD(sparkContext, tableName, unsafeRows)
 
   protected override def doExecute(): RDD[InternalRow] = {
     val numOutputRows = longMetric("numOutputRows")
@@ -46,13 +46,13 @@ case class StarryLocalTableScanExec(
   }
 
   override def executeCollect(): Array[InternalRow] = {
-    longMetric("numOutputRows").add(unsafeRows.size)
+    longMetric("numOutputRows").add(unsafeRows.length)
     unsafeRows
   }
 
   override def executeTake(limit: Int): Array[InternalRow] = {
     val taken = unsafeRows.take(limit)
-    longMetric("numOutputRows").add(taken.size)
+    longMetric("numOutputRows").add(taken.length)
     taken
   }
 }

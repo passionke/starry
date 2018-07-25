@@ -10,10 +10,22 @@ import scala.reflect.ClassTag
   * 一朝鹏程，快意风云，挥手功名
   */
 class StarryRDD[T: ClassTag](sc: SparkContext,
-                             @transient private val data: Seq[T]
+                             rddName: String,
+                             @transient private var data: Seq[T]
                             ) extends RDD[T](sc, Nil) {
+  def this (sc: SparkContext, data: Seq[T]) = {
+    this (sc, getClass.getSimpleName, data)
+  }
+
+  setName(rddName)
+
   override def compute(split: Partition, context: TaskContext): Iterator[T] = {
     split.asInstanceOf[ParallelCollectionPartition[T]].iterator
+  }
+
+  def updateData(data: Seq[T]): Unit = {
+    this.data = data
+    this.markCheckpointed()
   }
 
   override protected def getPartitions: Array[Partition] = {
