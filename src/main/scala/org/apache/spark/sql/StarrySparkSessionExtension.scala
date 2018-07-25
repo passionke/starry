@@ -1,7 +1,7 @@
 package org.apache.spark.sql
 
-import org.apache.spark.Spark.ExtensionsBuilder
 import org.apache.spark.sql.catalyst.optimizer.StarryLocalRelationReplace
+import org.apache.spark.sql.extension.ExtensionsBuilder
 
 /**
   * Created by passionke on 2018/7/18.
@@ -14,6 +14,9 @@ class StarrySparkSessionExtension extends ExtensionsBuilder {
   override def apply(sparkSessionExtensions: SparkSessionExtensions): Unit = {
     sparkSessionExtensions.injectOptimizerRule(_ =>
       StarryLocalRelationReplace)
+    sparkSessionExtensions.injectResolutionRule(_ =>
+      StarryLocalRelationReplace
+    )
   }
 }
 

@@ -9,7 +9,6 @@ import org.apache.spark.sql.execution.LocalBasedStrategies
   * 一朝鹏程，快意风云，挥手功名
   */
 object Spark {
-  type ExtensionsBuilder = SparkSessionExtensions => Unit
 
   val sparkConf = new SparkConf()
   sparkConf.setMaster("local[*]")

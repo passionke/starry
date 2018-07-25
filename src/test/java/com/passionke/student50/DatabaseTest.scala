@@ -50,7 +50,7 @@ class DatabaseTest extends FunSuite {
       SparkPlanExecutor.doExec(rst.queryExecution.sparkPlan)
       val end = System.currentTimeMillis()
       end - start
-    }, 1000000, 1)
+    }, 10000, 1)
   }
 
   test("prob 01_rdd") {
@@ -78,6 +78,7 @@ class DatabaseTest extends FunSuite {
     val rdd = rst.queryExecution.sparkPlan.execute().map(_.copy())
     list.map(_.toSeq(schema)).foreach(itr => println(itr.toString))
 
+    rdd.dependencies.flatMap(r => r.rdd.dependencies)
     ProfileUtils.profileMuti(() => {
       val start = System.currentTimeMillis()
       SparkPlanExecutor.rddCompute(rdd)
