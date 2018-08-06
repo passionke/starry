@@ -1,11 +1,10 @@
 # What's Starry?
 
-Starry brings amazingly `1-2ms`  response time to spark  
-when you deploy spark application with local mode.
+Starry brings amazingly `1-2ms`  response time to spark when you deploy spark application with local mode.
 
 # Why Starry 
 
-Since Spark supports complex sql and if you want a memory db, with Starry, Spark will be a possible solution.
+Since Spark supports complex SQL and if you want a memory db, with Starry, Spark will be a possible solution.
 We also use starry to deploy ML predict service.
 
 ## maven repo
@@ -21,7 +20,7 @@ We also use starry to deploy ML predict service.
 
 ## Quick tutorial
 
-Starry has enhanced SparkContext and Spark SQL engine, so you should use StarrySparkContext instead of original 
+Starry has enhanced SparkContext and Spark SQL Engine, so you should use StarrySparkContext instead of original 
 SparkContext.
 
 ```scala
@@ -66,3 +65,20 @@ val rdd = sparkSession.sparkContext.parallelize(strList, perRequestCoreNum)
 import sparkSession.implicits._
 val res = sparkSession.createDataset(rdd).selectExpr(sql).toJSON.collect().mkString(",")
 ```
+
+If you want to load data from HDFS ,you can try code like following：
+
+```scala
+// unRegistering dynamically starry strategies from SparkSession
+// then load them in memory.
+val df = sparkSession.read.load(tablePath)
+LocalBasedStrategies.unRegister(sparkSession)
+val rows = df.collectAsList()
+
+// Register starry strategies  again 
+LocalBasedStrategies.register(sparkSession)
+// Create DataFrame using List not RDD 
+sparkSession.createDataFrame(rows, df.schema).createOrReplaceTempView(tableName)
+```
+
+When you query the data again, you will find it amazing fast.
