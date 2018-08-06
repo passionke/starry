@@ -33,8 +33,6 @@ val sparkConf = new SparkConf()
   sparkConf
     .set("spark.default.parallelism", "1")
     .set("spark.sql.shuffle.partitions", "1")
-    .set("spark.broadcast.manager", "rotary")
-    .set("rotary.shuffer", "true")
     .set("spark.sql.codegen.wholeStage", "false")
     .set("spark.sql.extensions", "org.apache.spark.sql.StarrySparkSessionExtension")
   
