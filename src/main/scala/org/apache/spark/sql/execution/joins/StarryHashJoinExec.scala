@@ -1,6 +1,6 @@
 package org.apache.spark.sql.execution.joins
 
-import org.apache.spark.SparkPlanExecutor
+import com.github.passionke.starry.SparkPlanExecutor
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.Expression

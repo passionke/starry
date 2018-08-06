@@ -12,7 +12,7 @@ import scala.collection.mutable
   * 紫微无姓，红尘留行，扁舟越沧溟，何须山高龙自灵。
   * 一朝鹏程，快意风云，挥手功名
   */
-private[spark] object StarryClosureCleaner extends Logging {
+object StarryClosureCleaner extends Logging {
 
   val serializableMap: LRUCache[String, Boolean] = new LRUCache[String, Boolean](100000)
 

@@ -1,5 +1,6 @@
 package org.apache.spark
 
+import com.github.passionke.starry.StarrySparkContext
 import org.apache.spark.sql.{SparkSession, SparkSessionExtensions}
 import org.apache.spark.sql.execution.LocalBasedStrategies
 
@@ -20,6 +21,7 @@ object Spark {
     .set("rotary.shuffer", "true")
     .set("spark.sql.codegen.wholeStage", "false")
     .set("spark.sql.extensions", "org.apache.spark.sql.StarrySparkSessionExtension")
+    .set("spark.driver.allowMultipleContexts", "true") // for test only
   val sparkContext = new StarrySparkContext(sparkConf)
   val sparkSession: SparkSession =
     SparkSession.builder

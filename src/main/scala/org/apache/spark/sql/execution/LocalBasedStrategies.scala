@@ -19,8 +19,6 @@ object LocalBasedStrategies {
       StarryLocalTableScanStrategies()
     ) ++: sparkSession.experimental.extraStrategies
 
-    sparkSession.sessionState.optimizer.batches
-
     sparkSession.experimental.extraOptimizations = Seq(
       StarryLocalRelationReplace
     )
