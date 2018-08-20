@@ -39,9 +39,9 @@ val sparkConf = new SparkConf()
   val sparkContext = new StarrySparkContext(sparkConf)
   // now you have got one enhanced sparkSession. Using it just as usual.
   val sparkSession: SparkSession =
-    SparkSession.builder
-      .sparkContext(sparkContext)
+    SparkSession.builder.
       .getOrCreate
+      .sparkContext(sparkContext)
   // Starry also provide some extraStrategies optimized for local mode. 
   // Using LocalBasedStrategies to register.
   LocalBasedStrategies.register(sparkSession)  
